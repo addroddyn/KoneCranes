@@ -11,9 +11,11 @@ public class Main {
         if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
             trafficControl.generateGrid(gridSize);
             trafficControl.generateVehicles(vehicleCount);
+            trafficControl.listVehicleProgress();
         }
     }
 
+    //region getIntegerInput
     public static int getIntegerInput(String message, int defaultValue) {
         return getIntegerInput(message, defaultValue, Integer.MIN_VALUE + 1);
     }
@@ -23,7 +25,6 @@ public class Main {
     }
 
     public static int getIntegerInput(String message, int defaultValue, int lowerLimit, int upperLimit) {
-        System.out.println("beep");
         int returnValue = Integer.MIN_VALUE;
         Scanner myObj = new Scanner(System.in);
         while (returnValue < lowerLimit || returnValue > upperLimit) {
@@ -43,4 +44,5 @@ public class Main {
         }
         return returnValue;
     }
+    //endregion
 }

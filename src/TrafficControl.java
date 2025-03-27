@@ -21,7 +21,13 @@ public class TrafficControl {
     public void generateVehicles(int vehicleCount) {
         vehicleFleet = new ArrayList<>(vehicleCount);
         for (int i = 0; i < vehicleCount; i++) {
-            vehicleFleet.add(new Vehicle());
+            vehicleFleet.add(new Vehicle(Integer.toString(i), mainGrid.getOriginPoint(), mainGrid.getRandomLocation()));
+        }
+    }
+
+    public void listVehicleProgress() {
+        for (Vehicle v : vehicleFleet) {
+            System.out.println("Vehicle " + v.getName() + " is currently at " + v.getCurrentLocation().toString() + ". Heading to " + v.getCurrentTarget().toString() + ".");
         }
     }
 
