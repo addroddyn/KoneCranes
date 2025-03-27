@@ -1,17 +1,69 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.*;
 
 public class Main {
 
-    public static void main(String[] args) {
+    static BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
+
+    public static void main(String[] args) throws IOException, InterruptedException {
         TrafficControl trafficControl = TrafficControl.getInstance();
-        System.out.println("boo");
-        int gridSize = getIntegerInput("Please enter grid size (empty for default:10, minimum: 5).", 10, 5);
-        int vehicleCount = getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);
+        /*int gridSize = getIntegerInput("Please enter grid size (empty for default:10, minimum: 5).", 10, 5);
+        int vehicleCount = getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);*/
+        int gridSize = 10;
+        int vehicleCount = 5;
+
+        // input is on different thread so we don't get lost
+
+        Thread inputThread = new Thread(() -> {
+            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            while (true) {
+                try {
+                    String input = in.readLine();
+                    if (input != null) {
+                        inputQueue.put(input.trim());
+                    }
+                } catch (Exception e) {
+                    break;
+                }
+            }
+        });
+        // daemon so the program doesn't wait for it to finish
+        inputThread.setDaemon(true);
+        inputThread.start();
 
         if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
             trafficControl.generateGrid(gridSize);
             trafficControl.generateVehicles(vehicleCount);
-            trafficControl.listVehicleProgress();
+            String input = "";
+            while (input == null || !input.equalsIgnoreCase("stop")) {
+                System.out.println("------------");
+                Thread.sleep(1500);
+                System.out.println("Vehicles will resume moving in 2 seconds. Type 'stop' to stop.");
+                trafficControl.Stop();
+
+                input = null;
+                long deadline = System.currentTimeMillis() + 2000;
+
+                // Wait up to 2 seconds for input
+                while (System.currentTimeMillis() < deadline && input == null) {
+                    input = inputQueue.poll(100, TimeUnit.MILLISECONDS);
+                }
+
+                if (input == null) {
+                    System.out.println("No input. Letting vehicles go...");
+                    trafficControl.Go();
+                } else {
+                    System.out.println("User typed: " + input);
+                    // Handle other commands like "MAN" here if needed
+                }
+            }
+            // shut down and join up all the threads
+            trafficControl.ShutDown();
         }
     }
 
@@ -31,12 +83,13 @@ public class Main {
             System.out.println(message);
             try {
                 String response = myObj.nextLine();
-                if (response != null && response.isBlank())
-                    returnValue = defaultValue;
+                if (response == null) {
+                    throw new NumberFormatException();
+                }
+                if (response.isBlank()) returnValue = defaultValue;
                 else {
                     returnValue = Integer.parseInt(response);  // Read user input
-                    if (returnValue < lowerLimit || returnValue > upperLimit)
-                        throw new NumberFormatException();
+                    if (returnValue < lowerLimit || returnValue > upperLimit) throw new NumberFormatException();
                 }
             } catch (Exception e) {
                 System.out.println("Incorrect value or format.");
