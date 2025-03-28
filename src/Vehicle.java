@@ -1,6 +1,5 @@
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.Console;
 
 public class Vehicle implements PropertyChangeListener, Runnable {
     private String name;
@@ -36,6 +35,7 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         this.currentTarget = target;
         trafficControl.addPropertyChangeListener(this);
         tick = trafficControl.getVehicleMovementTick();
+        System.out.println(name + " created with target of " + currentTarget.toString());
     }
 
     public String getName() {
@@ -45,8 +45,6 @@ public class Vehicle implements PropertyChangeListener, Runnable {
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         canMove = (Boolean) e.getNewValue();
-        /*System.out.println("Could I go before? " + e.getOldValue());
-        System.out.println("Can I go now? " + e.getNewValue());*/
     }
 
     @Override
@@ -55,6 +53,7 @@ public class Vehicle implements PropertyChangeListener, Runnable {
     }
 
     public void stop(){
+        // used for graceful shutdown of the thread
         shouldMove = false;
     }
 
@@ -62,9 +61,9 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         try {
             while (shouldMove) {
                 if (canMove) {
-                    //System.out.println(this.name + " is trying to move.");
-                } else {
-                    //System.out.println(this.name + " is not moving.");
+                    if (currentLocation.getRow() != currentTarget.getRow() || currentLocation.getColumn() != currentTarget.getColumn()) {
+                        moveTowardsCurrentTarget();
+                    }
                 }
                 Thread.sleep(tick);
             }
@@ -74,5 +73,28 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         {
             System.out.println(e.getMessage());
         }
+    }
+
+    private void moveTowardsCurrentTarget() {
+        int nextRow = currentLocation.getRow();
+        int nextColumn = currentLocation.getColumn();
+        if (currentLocation.getRow() > currentTarget.getRow()) {
+            nextRow--;
+        }
+        if (currentLocation.getRow() < currentTarget.getRow()) {
+            nextRow++;
+        }
+        if (currentLocation.getColumn() > currentTarget.getColumn()) {
+            nextColumn--;
+        }
+        if (currentLocation.getColumn() < currentTarget.getColumn()) {
+            nextColumn++;
+        }
+        if (trafficControl.requestMove(this, currentLocation.getRow(), currentLocation.getColumn(), nextRow, nextColumn)){
+            currentLocation.setRow(nextRow);
+            currentLocation.setColumn(nextColumn);
+            System.out.println(name + " moved to " + currentLocation.toString());
+        }
+        //if you're on target
     }
 }

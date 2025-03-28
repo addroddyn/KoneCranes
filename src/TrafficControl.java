@@ -1,6 +1,5 @@
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class TrafficControl {
@@ -21,7 +20,7 @@ public class TrafficControl {
     private final int vehicleMovementTick = 2000;
 
     public void generateGrid(int gridSize) {
-        mainGrid = new Grid(gridSize);
+        mainGrid = Grid.getInstance(gridSize);
     }
 
     public void generateVehicles(int vehicleCount) {
@@ -33,6 +32,7 @@ public class TrafficControl {
             Thread t = new Thread(v);
             vehicleTreads.add(t);
             t.start();
+            addVehicleToOrigin(v);
         }
     }
 
@@ -79,6 +79,14 @@ public class TrafficControl {
 
     public int getVehicleMovementTick() {
         return vehicleMovementTick;
+    }
+
+    private boolean addVehicleToOrigin(Vehicle vehicle) {
+        return mainGrid.addVehicleToOrigin(vehicle);
+    }
+
+    public boolean requestMove(Vehicle vehicle, int currentRow, int currentColumn, int nextRow, int nextColumn) {
+        return mainGrid.moveVehicle(vehicle, currentRow, currentColumn, nextRow, nextColumn);
     }
 }
 

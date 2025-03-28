@@ -15,7 +15,7 @@ public class Main {
         /*int gridSize = getIntegerInput("Please enter grid size (empty for default:10, minimum: 5).", 10, 5);
         int vehicleCount = getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);*/
         int gridSize = 10;
-        int vehicleCount = 5;
+        int vehicleCount = 1;
         int inputWaitInterval = 2000;
         int controlTick = (int) Math.round((trafficControl.getVehicleMovementTick() * 1.5));
 
