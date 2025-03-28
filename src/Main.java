@@ -16,9 +16,46 @@ public class Main {
         int vehicleCount = getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);*/
         int gridSize = 10;
         int vehicleCount = 5;
+        int inputWaitInterval = 2000;
+        int controlTick = (int) Math.round((trafficControl.getVehicleMovementTick() * 1.5));
 
         // input is on different thread so we don't get lost
+        Thread inputThread = getInputThread();
+        inputThread.start();
 
+        if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
+            trafficControl.generateGrid(gridSize);
+            trafficControl.generateVehicles(vehicleCount);
+            String input = "";
+            while (input == null || !input.equalsIgnoreCase("stop")) {
+                System.out.println("------------");
+                // we make sure enough time has passed so that every vehicle stepped once
+                Thread.sleep(controlTick);
+                System.out.println("Vehicles will resume moving in 2 seconds. Type 'stop' to stop.");
+                trafficControl.Stop();
+
+                input = null;
+                long deadline = System.currentTimeMillis() + 2000;
+
+                // Wait up to 2 seconds for input
+                while (System.currentTimeMillis() < deadline && input == null) {
+                    input = inputQueue.poll(inputWaitInterval, TimeUnit.MILLISECONDS);
+                }
+
+                if (input == null) {
+                    System.out.println("No input. Letting vehicles go...");
+                    trafficControl.Go();
+                } else {
+                    System.out.println("User typed: " + input);
+                    // Handle other commands like "MAN" here if needed
+                }
+            }
+            // shut down and join up all the threads
+            trafficControl.ShutDown();
+        }
+    }
+
+    private static Thread getInputThread() {
         Thread inputThread = new Thread(() -> {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
@@ -34,37 +71,7 @@ public class Main {
         });
         // daemon so the program doesn't wait for it to finish
         inputThread.setDaemon(true);
-        inputThread.start();
-
-        if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
-            trafficControl.generateGrid(gridSize);
-            trafficControl.generateVehicles(vehicleCount);
-            String input = "";
-            while (input == null || !input.equalsIgnoreCase("stop")) {
-                System.out.println("------------");
-                Thread.sleep(1500);
-                System.out.println("Vehicles will resume moving in 2 seconds. Type 'stop' to stop.");
-                trafficControl.Stop();
-
-                input = null;
-                long deadline = System.currentTimeMillis() + 2000;
-
-                // Wait up to 2 seconds for input
-                while (System.currentTimeMillis() < deadline && input == null) {
-                    input = inputQueue.poll(100, TimeUnit.MILLISECONDS);
-                }
-
-                if (input == null) {
-                    System.out.println("No input. Letting vehicles go...");
-                    trafficControl.Go();
-                } else {
-                    System.out.println("User typed: " + input);
-                    // Handle other commands like "MAN" here if needed
-                }
-            }
-            // shut down and join up all the threads
-            trafficControl.ShutDown();
-        }
+        return inputThread;
     }
 
     //region getIntegerInput

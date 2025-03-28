@@ -18,6 +18,7 @@ public class TrafficControl {
     private Grid mainGrid;
     private Boolean canGo = false;
     private PropertyChangeSupport trafficLight = new PropertyChangeSupport(this);
+    private final int vehicleMovementTick = 2000;
 
     public void generateGrid(int gridSize) {
         mainGrid = new Grid(gridSize);
@@ -74,6 +75,10 @@ public class TrafficControl {
         }
 
 
+    }
+
+    public int getVehicleMovementTick() {
+        return vehicleMovementTick;
     }
 }
 

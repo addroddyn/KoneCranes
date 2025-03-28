@@ -10,6 +10,7 @@ public class Vehicle implements PropertyChangeListener, Runnable {
     private GridLocation currentTarget;
     private Boolean canMove = false;
     private Boolean shouldMove = true;
+    private final int tick;
 
     public GridLocation getCurrentLocation() {
         return currentLocation;
@@ -34,6 +35,7 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         this.currentLocation = home;
         this.currentTarget = target;
         trafficControl.addPropertyChangeListener(this);
+        tick = trafficControl.getVehicleMovementTick();
     }
 
     public String getName() {
@@ -64,7 +66,7 @@ public class Vehicle implements PropertyChangeListener, Runnable {
                 } else {
                     //System.out.println(this.name + " is not moving.");
                 }
-                Thread.sleep(1000);
+                Thread.sleep(tick);
             }
             System.out.println(name + " stopped.");
         }
