@@ -1,59 +1,71 @@
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Scanner;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 public class FlowControl implements PropertyChangeListener {
 
-    static BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
     TrafficControl trafficControl;
+    private Boolean isThereActiveVehicle = true;
 
 
-    public void start() throws InterruptedException, IOException {
+    public void start()  {
         trafficControl = TrafficControl.getInstance();
         /*int gridSize = getIntegerInput("Please enter grid size (empty for default:10, minimum: 5).", 10, 5);
         int vehicleCount = getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);*/
         int gridSize = 10;
         int vehicleCount = 3;
         trafficControl.addFullTickListener(this);
+        trafficControl.addRetirementListener(this);
 
-        // input is on different thread so we don't get lost
-        Thread inputThread = getInputThread();
-        inputThread.start();
+        //get a separate thread to listen to user input
+        Thread exitWatcher = getThread();
+        exitWatcher.start();
+
 
         if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
             trafficControl.generateGrid(gridSize);
             trafficControl.generateVehicles(vehicleCount);
             trafficControl.Go();
-
-            // shut down and join up all the threads
-            //trafficControl.ShutDown();
-
         }
     }
 
-    private static Thread getInputThread() {
-        Thread inputThread = new Thread(() -> {
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-            while (true) {
-                try {
-                    String input = in.readLine();
-                    if (input != null) {
-                        inputQueue.put(input.trim());
-                    }
-                } catch (Exception e) {
-                    break;
+    private Thread getThread() {
+        Thread exitWatcher = new Thread(() -> {
+            try {
+                while (isThereActiveVehicle) {
+                    System.in.read(); // Wait for any key
+                    System.out.println("🛑 Stopping...");
+                    trafficControl.Stop();
+                    System.in.read();
+                    trafficControl.Go();
                 }
+            } catch (IOException e) {
+                System.out.println(e + ": " + e.getMessage());
             }
         });
-        // daemon so the program doesn't wait for it to finish
-        inputThread.setDaemon(true);
-        return inputThread;
+        // so we don't get hung up on the input thread
+        exitWatcher.setDaemon(true);
+        return exitWatcher;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        switch (evt.getPropertyName()) {
+            case TrafficControl.TCPropertyEvents.ALL_VEHICLES_MOVED:
+                trafficControl.Stop();
+                trafficControl.Go();
+                break;
+            case TrafficControl.TCPropertyEvents.ALL_VEHICLES_RETIRED:
+                isThereActiveVehicle = false;
+                try {
+                    trafficControl.ShutDown();
+                    System.exit(0);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                break;
+        }
     }
 
     //region getIntegerInput
@@ -86,13 +98,6 @@ public class FlowControl implements PropertyChangeListener {
         }
         return returnValue;
     }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        trafficControl.Stop();
-
-                trafficControl.Go();
-    }
-
     //endregion
+
 }

@@ -12,9 +12,9 @@ public class Grid {
 
     }
 
-    private int rowLength;
-    private int columnLength;
-    private GridLocation[][] currentGrid;
+    private final int rowLength;
+    private final int columnLength;
+    private final GridLocation[][] currentGrid;
 
     public int GetRowStart() {
         return 0;

@@ -2,9 +2,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 public class Vehicle implements PropertyChangeListener, Runnable {
-    private String name;
-    private TrafficControl trafficControl;
-    private GridLocation home;
+    private final String name;
+    private final TrafficControl trafficControl;
+    private final GridLocation home;
     private GridLocation currentLocation;
     private GridLocation currentTarget;
     private Boolean canMove = false;
@@ -33,15 +33,12 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         //this.home = home;
         this.home = new GridLocation(home.getRow(), home.getColumn());
         this.currentLocation = new GridLocation(home.getRow(), home.getColumn());
-        this.currentTarget = target;
+        this.currentTarget = new GridLocation(target.getRow(), target.getColumn());
         trafficControl.addTrafficLightListener(this);
-        tick = trafficControl.getVehicleMovementTick();
-        System.out.println(name + " created with target of " + currentTarget.toString());
+        tick = trafficControl.getVehicleMovement();
+        vehicleLogLine("Created with target of " + currentTarget.toString());
     }
 
-    public String getName() {
-        return name;
-    }
 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
@@ -74,11 +71,11 @@ public class Vehicle implements PropertyChangeListener, Runnable {
             }
             System.out.println(name + " stopped.");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            vehicleLogLine(e + ", "+ e.getMessage());
         }
     }
 
-    private void moveTowardsCurrentTarget() throws InterruptedException {
+    private void moveTowardsCurrentTarget() {
         int nextRow = currentLocation.getRow();
         int nextColumn = currentLocation.getColumn();
         if (currentLocation.getRow() > currentTarget.getRow()) {
@@ -96,17 +93,22 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         if (trafficControl.requestMove(this, currentLocation.getRow(), currentLocation.getColumn(), nextRow, nextColumn)) {
             currentLocation.setRow(nextRow);
             currentLocation.setColumn(nextColumn);
-            System.out.println(name + " moved to " + currentLocation.toString());
+            vehicleLogLine("Moved to " + currentLocation.toString());
         }
         if (currentLocation.getRow() == currentTarget.getRow() && currentLocation.getColumn() == currentTarget.getColumn()) {
             if (currentLocation.getRow() != home.getRow() || currentLocation.getColumn() != home.getColumn()) {
-                System.out.println(name + " has reached its target and is now going home.");
+                vehicleLogLine("Reached its target and is now going home.");
                 currentTarget.setRow(home.getRow());
                 currentTarget.setColumn(home.getColumn());
             } else {
-                System.out.println(name + " arrived home and is now retiring.");
+                vehicleLogLine("Arrived home and is now retiring.");
+                trafficControl.vehicleRetired();
                 shouldMove = false;
             }
         }
+    }
+
+    private void vehicleLogLine(String message){
+        System.out.println(name + ": " + message);
     }
 }

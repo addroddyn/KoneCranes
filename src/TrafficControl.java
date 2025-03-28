@@ -7,6 +7,7 @@ public class TrafficControl {
     public static final class TCPropertyEvents {
         public static final String TRAFFIC_GO_STOP = "trafficLight";
         public static final String ALL_VEHICLES_MOVED = "allVehiclesMoved";
+        public static final String ALL_VEHICLES_RETIRED = "allVehiclesRetired";
     }
 
     private static TrafficControl instance = null;
@@ -20,10 +21,9 @@ public class TrafficControl {
     private ArrayList<Vehicle> vehicleFleet;
     private ArrayList<Thread> vehicleTreads;
     private Grid mainGrid;
-    private Boolean canGo = false;
-    private PropertyChangeSupport propertyChangedBroadcaster = new PropertyChangeSupport(this);
-    private final int vehicleMovementTick = 1000;
+    private final PropertyChangeSupport propertyChangedBroadcaster = new PropertyChangeSupport(this);
     private int vehiclesMovedThisTick = 0;
+    private int retiredVehicles = 0;
 
 
     public void generateGrid(int gridSize) {
@@ -39,13 +39,9 @@ public class TrafficControl {
             Thread t = new Thread(v);
             vehicleTreads.add(t);
             t.start();
-            addVehicleToOrigin(v);
-        }
-    }
-
-    public void listVehicleProgress() {
-        for (Vehicle v : vehicleFleet) {
-            System.out.println("Vehicle " + v.getName() + " is currently at " + v.getCurrentLocation().toString() + ". Heading to " + v.getCurrentTarget().toString() + ".");
+            if (!addVehicleToOrigin(v)) {
+                throw new RuntimeException();
+            }
         }
     }
 
@@ -53,32 +49,22 @@ public class TrafficControl {
         propertyChangedBroadcaster.addPropertyChangeListener(TCPropertyEvents.TRAFFIC_GO_STOP, l);
     }
 
-    public void removeTrafficLightListener(PropertyChangeListener listener) {
-        propertyChangedBroadcaster.removePropertyChangeListener(TCPropertyEvents.TRAFFIC_GO_STOP, listener);
-    }
-
 
     public void addFullTickListener(PropertyChangeListener l) {
         propertyChangedBroadcaster.addPropertyChangeListener(TCPropertyEvents.ALL_VEHICLES_MOVED, l);
     }
 
-    public void removeFullTickListener(PropertyChangeListener listener) {
-        propertyChangedBroadcaster.removePropertyChangeListener(TCPropertyEvents.ALL_VEHICLES_MOVED, listener);
+    public void addRetirementListener(PropertyChangeListener l) {
+        propertyChangedBroadcaster.addPropertyChangeListener(TCPropertyEvents.ALL_VEHICLES_RETIRED, l);
     }
 
     public void Go() {
-        //if (!canGo) {
-            //canGo = true;
-            propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.TRAFFIC_GO_STOP, false, true);
-        //}
+        propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.TRAFFIC_GO_STOP, false, true);
     }
 
     public void Stop() {
-        //if (canGo) {
-            vehiclesMovedThisTick = 0;
-            //canGo = false;
-            propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.TRAFFIC_GO_STOP, true, false);
-        //}
+        vehiclesMovedThisTick = 0;
+        propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.TRAFFIC_GO_STOP, true, false);
     }
 
     public void ShutDown() throws InterruptedException {
@@ -86,29 +72,31 @@ public class TrafficControl {
             v.stop();
         }
         for (Thread t : vehicleTreads) {
-            t.join();
+            t.join(100);
         }
 
 
     }
 
-    public int getVehicleMovementTick() {
-        return vehicleMovementTick;
+    public int getVehicleMovement() {
+        return 1000;
     }
 
-    private boolean addVehicleToOrigin(Vehicle vehicle) {
+    private Boolean addVehicleToOrigin(Vehicle vehicle) {
         return mainGrid.addVehicleToOrigin(vehicle);
     }
 
-    public void vehicleRetired(Vehicle vehicle)
-    {
-        vehicleFleet.remove(vehicle);
+    public void vehicleRetired() {
+        retiredVehicles++;
+        if (retiredVehicles == vehicleFleet.size()) {
+            propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.ALL_VEHICLES_RETIRED, false, true);
+        }
     }
 
     public boolean requestMove(Vehicle vehicle, int currentRow, int currentColumn, int nextRow, int nextColumn) {
         if (mainGrid.moveVehicle(vehicle, currentRow, currentColumn, nextRow, nextColumn)) {
             vehiclesMovedThisTick++;
-            if (vehiclesMovedThisTick == vehicleFleet.size()){
+            if (vehiclesMovedThisTick == vehicleFleet.size()) {
                 vehiclesMovedThisTick = 0;
                 propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.ALL_VEHICLES_MOVED, false, true);
             }

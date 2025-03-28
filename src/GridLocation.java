@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class GridLocation {
     private int row;
     private int column;
-    private ArrayList<Vehicle> currentVehicles;
+    private final ArrayList<Vehicle> currentVehicles;
 
     public GridLocation(int row, int column) {
         this.row = row;
@@ -28,14 +28,18 @@ public class GridLocation {
     }
 
     public String toString() {
-        return Integer.toString(row) + "," + Integer.toString(column);
+        return row + "," + column;
     }
 
     public Boolean addVehicleToLocation(Vehicle v) {
-        return currentVehicles.add(v);
+        synchronized (this) {
+            return currentVehicles.add(v);
+        }
     }
 
     public Boolean removeVehicleFromLocation(Vehicle v) {
+        synchronized (this) {
             return currentVehicles.remove(v);
+        }
     }
 }
