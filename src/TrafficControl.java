@@ -4,11 +4,6 @@ import java.util.ArrayList;
 
 public class TrafficControl {
 
-    public static final class TCPropertyEvents {
-        public static final String TRAFFIC_GO_STOP = "trafficLight";
-        public static final String ALL_VEHICLES_MOVED = "allVehiclesMoved";
-        public static final String ALL_VEHICLES_RETIRED = "allVehiclesRetired";
-    }
 
     private static TrafficControl instance = null;
 
@@ -34,7 +29,7 @@ public class TrafficControl {
         vehicleFleet = new ArrayList<>(vehicleCount);
         vehicleTreads = new ArrayList<>(vehicleCount);
         for (int i = 0; i < vehicleCount; i++) {
-            Vehicle v = new Vehicle(Integer.toString(i), this, mainGrid.getOriginPoint(), mainGrid.getRandomLocation());
+            Vehicle v = new Vehicle(i, this, mainGrid.getOriginPoint(), mainGrid.getRandomLocation());
             vehicleFleet.add(v);
             Thread t = new Thread(v);
             vehicleTreads.add(t);
@@ -46,25 +41,29 @@ public class TrafficControl {
     }
 
     public void addTrafficLightListener(PropertyChangeListener l) {
-        propertyChangedBroadcaster.addPropertyChangeListener(TCPropertyEvents.TRAFFIC_GO_STOP, l);
+        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.TRAFFIC_GO_STOP, l);
     }
 
 
     public void addFullTickListener(PropertyChangeListener l) {
-        propertyChangedBroadcaster.addPropertyChangeListener(TCPropertyEvents.ALL_VEHICLES_MOVED, l);
+        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.ALL_VEHICLES_MOVED, l);
     }
 
     public void addRetirementListener(PropertyChangeListener l) {
-        propertyChangedBroadcaster.addPropertyChangeListener(TCPropertyEvents.ALL_VEHICLES_RETIRED, l);
+        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.ALL_VEHICLES_RETIRED, l);
+    }
+
+    public void addUnRetirementListener(PropertyChangeListener l) {
+        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.NO_REST_FOR_THE_WICKED, l);
     }
 
     public void Go() {
-        propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.TRAFFIC_GO_STOP, false, true);
+        propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.TRAFFIC_GO_STOP, false, true);
     }
 
     public void Stop() {
         vehiclesMovedThisTick = 0;
-        propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.TRAFFIC_GO_STOP, true, false);
+        propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.TRAFFIC_GO_STOP, true, false);
     }
 
     public void ShutDown() throws InterruptedException {
@@ -89,8 +88,13 @@ public class TrafficControl {
     public void vehicleRetired() {
         retiredVehicles++;
         if (retiredVehicles == vehicleFleet.size()) {
-            propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.ALL_VEHICLES_RETIRED, false, true);
+            propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.ALL_VEHICLES_RETIRED, false, true);
         }
+    }
+
+    public void vehicleUnRetired(Vehicle vehicle) {
+        retiredVehicles--;
+        propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.NO_REST_FOR_THE_WICKED, -1, vehicle.getId());
     }
 
     public boolean requestMove(Vehicle vehicle, int currentRow, int currentColumn, int nextRow, int nextColumn) {
@@ -98,12 +102,29 @@ public class TrafficControl {
             vehiclesMovedThisTick++;
             if (vehiclesMovedThisTick == vehicleFleet.size()) {
                 vehiclesMovedThisTick = 0;
-                propertyChangedBroadcaster.firePropertyChange(TCPropertyEvents.ALL_VEHICLES_MOVED, false, true);
+                propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.ALL_VEHICLES_MOVED, false, true);
             }
 
             return true;
         }
         return false;
+    }
+
+    public void newTargetForVehicle(VehicleInput input) {
+        for (Vehicle v : vehicleFleet) {
+            if (v.getId() == input.getVehicleId()) {
+                if (input.isDirection()) {
+                    if (input.getRow() != -1) {
+                        v.setCurrentTarget(new GridLocation(input.getRow(), v.getCurrentTarget().getColumn()));
+                    } else if (input.getColumn() != -1) {
+                        v.setCurrentTarget(new GridLocation(v.getCurrentTarget().getRow(), input.getColumn()));
+                    }
+                } else {
+                    v.setCurrentTarget(new GridLocation(input.getRow(), input.getColumn()));
+                }
+                Helper.OutputHelpers.newTargetForVehicle(v, v.getCurrentTarget());
+            }
+        }
     }
 }
 

@@ -2,7 +2,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 public class Vehicle implements PropertyChangeListener, Runnable {
-    private final String name;
+    private final int id;
     private final TrafficControl trafficControl;
     private final GridLocation home;
     private GridLocation currentLocation;
@@ -25,16 +25,24 @@ public class Vehicle implements PropertyChangeListener, Runnable {
 
     public void setCurrentTarget(GridLocation currentTarget) {
         this.currentTarget = currentTarget;
+        if (!shouldMove){
+            trafficControl.vehicleUnRetired(this);
+        }
     }
 
-    public Vehicle(String name, TrafficControl control, GridLocation home, GridLocation target) {
-        this.name = name;
+    public int getId(){
+        return id;
+    }
+
+    public Vehicle(int id, TrafficControl control, GridLocation home, GridLocation target) {
+        this.id = id;
         this.trafficControl = control;
         //this.home = home;
         this.home = new GridLocation(home.getRow(), home.getColumn());
         this.currentLocation = new GridLocation(home.getRow(), home.getColumn());
         this.currentTarget = new GridLocation(target.getRow(), target.getColumn());
         trafficControl.addTrafficLightListener(this);
+        trafficControl.addUnRetirementListener(this);
         tick = trafficControl.getVehicleMovement();
         vehicleLogLine("Created with target of " + currentTarget.toString());
     }
@@ -42,7 +50,16 @@ public class Vehicle implements PropertyChangeListener, Runnable {
 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        canMove = (Boolean) e.getNewValue();
+        switch (e.getPropertyName()) {
+            case Helper.TCEvents.TRAFFIC_GO_STOP:
+            canMove = (Boolean) e.getNewValue();
+            break;
+            case Helper.TCEvents.NO_REST_FOR_THE_WICKED:
+                if ((int)e.getNewValue() == id) {
+                    Thread newThread = new Thread(this);
+                    newThread.start();
+                }
+        }
     }
 
     @Override
@@ -69,7 +86,7 @@ public class Vehicle implements PropertyChangeListener, Runnable {
                 }
                 Thread.sleep(tick);
             }
-            System.out.println(name + " stopped.");
+            System.out.println(id + " stopped.");
         } catch (Exception e) {
             vehicleLogLine(e + ", "+ e.getMessage());
         }
@@ -109,6 +126,6 @@ public class Vehicle implements PropertyChangeListener, Runnable {
     }
 
     private void vehicleLogLine(String message){
-        System.out.println(name + ": " + message);
+        System.out.println(id + ": " + message);
     }
 }

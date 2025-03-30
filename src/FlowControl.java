@@ -5,16 +5,23 @@ import java.util.Scanner;
 
 public class FlowControl implements PropertyChangeListener {
 
+    private static enum INPUT_STATE {
+        VALID,
+        ERROR_MAIN,
+        ERROR_MANUAL,
+        EXITED_MANUAL
+    }
+
     TrafficControl trafficControl;
     private Boolean isThereActiveVehicle = true;
+    int gridSize = 10;
+    int vehicleCount = 3;
 
 
-    public void start()  {
+    public void start() {
         trafficControl = TrafficControl.getInstance();
-        /*int gridSize = getIntegerInput("Please enter grid size (empty for default:10, minimum: 5).", 10, 5);
-        int vehicleCount = getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);*/
-        int gridSize = 10;
-        int vehicleCount = 3;
+        /*int gridSize = Helper.InputHelpers.getIntegerInput("Please enter grid size (empty for default:10, minimum: 5).", 10, 5);
+        int vehicleCount = Helper.InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);*/
         trafficControl.addFullTickListener(this);
         trafficControl.addRetirementListener(this);
 
@@ -33,15 +40,65 @@ public class FlowControl implements PropertyChangeListener {
     private Thread getThread() {
         Thread exitWatcher = new Thread(() -> {
             try {
+                Scanner scanner = new Scanner(System.in);
+                String input = "";
+                INPUT_STATE state = INPUT_STATE.VALID;
                 while (isThereActiveVehicle) {
-                    System.in.read(); // Wait for any key
-                    System.out.println("🛑 Stopping...");
+                    if (state == INPUT_STATE.ERROR_MAIN) {
+                        Helper.OutputHelpers.printInputInstructions(true);
+                    } else if (state == INPUT_STATE.VALID || state == INPUT_STATE.EXITED_MANUAL) {
+                        if (state == INPUT_STATE.VALID) {
+                            System.in.read();
+                        }
+                        Helper.OutputHelpers.printInputInstructions(false);
+                    }
                     trafficControl.Stop();
-                    System.in.read();
-                    trafficControl.Go();
+                    if (state == INPUT_STATE.ERROR_MANUAL) {
+                        input = "manual";
+                    } else {
+                        input = scanner.nextLine();
+                    }
+                    switch (input) {
+                        case "resume":
+                            Helper.OutputHelpers.printResume();
+                            state = INPUT_STATE.VALID;
+                            trafficControl.Go();
+                            break;
+                        case "stop":
+                            Helper.OutputHelpers.printShutdown();
+                            isThereActiveVehicle = false;
+                            trafficControl.ShutDown();
+                            System.exit(0);
+                            break;
+                        case "manual":
+                            if (state == INPUT_STATE.ERROR_MANUAL) {
+                                Helper.OutputHelpers.printNewTargetInstructions(true, vehicleCount, gridSize);
+                            } else {
+                                Helper.OutputHelpers.printNewTargetInstructions(false, vehicleCount, gridSize);
+                            }
+                            input = scanner.nextLine();
+                            if (input.equals("exit")) {
+                                state = INPUT_STATE.EXITED_MANUAL;
+                                break;
+                            }
+                            VehicleInput vehicleInput = new VehicleInput(input, vehicleCount, gridSize);
+                            if (vehicleInput.isValid()) {
+                                state = INPUT_STATE.VALID;
+                                trafficControl.newTargetForVehicle(vehicleInput);
+                                trafficControl.Go();
+                            } else {
+                                state = INPUT_STATE.ERROR_MANUAL;
+                            }
+                            break;
+                        default:
+                            state = INPUT_STATE.ERROR_MAIN;
+                            break;
+                    }
                 }
             } catch (IOException e) {
                 System.out.println(e + ": " + e.getMessage());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         });
         // so we don't get hung up on the input thread
@@ -49,14 +106,15 @@ public class FlowControl implements PropertyChangeListener {
         return exitWatcher;
     }
 
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
-            case TrafficControl.TCPropertyEvents.ALL_VEHICLES_MOVED:
+            case Helper.TCEvents.ALL_VEHICLES_MOVED:
                 trafficControl.Stop();
                 trafficControl.Go();
                 break;
-            case TrafficControl.TCPropertyEvents.ALL_VEHICLES_RETIRED:
+            case Helper.TCEvents.ALL_VEHICLES_RETIRED:
                 isThereActiveVehicle = false;
                 try {
                     trafficControl.ShutDown();
@@ -68,36 +126,5 @@ public class FlowControl implements PropertyChangeListener {
         }
     }
 
-    //region getIntegerInput
-    public static int getIntegerInput(String message, int defaultValue) {
-        return getIntegerInput(message, defaultValue, Integer.MIN_VALUE + 1);
-    }
-
-    public static int getIntegerInput(String message, int defaultValue, int lowerLimit) {
-        return getIntegerInput(message, defaultValue, lowerLimit, Integer.MAX_VALUE - 1);
-    }
-
-    public static int getIntegerInput(String message, int defaultValue, int lowerLimit, int upperLimit) {
-        int returnValue = Integer.MIN_VALUE;
-        Scanner myObj = new Scanner(System.in);
-        while (returnValue < lowerLimit || returnValue > upperLimit) {
-            System.out.println(message);
-            try {
-                String response = myObj.nextLine();
-                if (response == null) {
-                    throw new NumberFormatException();
-                }
-                if (response.isBlank()) returnValue = defaultValue;
-                else {
-                    returnValue = Integer.parseInt(response);  // Read user input
-                    if (returnValue < lowerLimit || returnValue > upperLimit) throw new NumberFormatException();
-                }
-            } catch (Exception e) {
-                System.out.println("Incorrect value or format.");
-            }
-        }
-        return returnValue;
-    }
-    //endregion
 
 }
