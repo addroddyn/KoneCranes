@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class FlowControl implements PropertyChangeListener {
 
-    private static enum INPUT_STATE {
+    private enum INPUT_STATE {
         VALID,
         ERROR_MAIN,
         ERROR_MANUAL,
@@ -26,12 +26,7 @@ public class FlowControl implements PropertyChangeListener {
         boolean inputChosen = false;
         boolean inputError = false;
         while (!inputChosen) {
-            if (!inputError) {
-                Helper.OutputHelpers.printStartup(false);
-            }
-            else {
-                Helper.OutputHelpers.printStartup(true);
-            }
+            Helper.OutputHelpers.printStartup(inputError);
             String generationMethod = scanner.nextLine();
             inputError = false;
             switch (generationMethod) {
@@ -54,7 +49,7 @@ public class FlowControl implements PropertyChangeListener {
                     int gridSize = Helper.InputHelpers.getIntegerInput("Please enter grid size (empty for default:15, minimum: 5).", 10, 5);
                     int vehicleCount = Helper.InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
                     if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
-                        HashMap<Integer, GridLocation> vehicleTargets = new HashMap<Integer, GridLocation>();
+                        HashMap<Integer, GridLocation> vehicleTargets = new HashMap<>();
                         for (int i = 0; i < vehicleCount; i++) {
                             int row = Helper.InputHelpers.getIntegerInput("Please enter the target row for vehicle " + i + " between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
                             int column = Helper.InputHelpers.getIntegerInput("Please enter the target column for vehicle " + i + "  between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
@@ -98,14 +93,15 @@ public class FlowControl implements PropertyChangeListener {
         Thread exitWatcher = new Thread(() -> {
             try {
                 Scanner scanner = new Scanner(System.in);
-                String input = "";
+                String input;
                 INPUT_STATE state = INPUT_STATE.VALID;
                 while (isThereActiveVehicle) {
                     if (state == INPUT_STATE.ERROR_MAIN) {
                         Helper.OutputHelpers.printInputInstructions(true);
                     } else if (state == INPUT_STATE.VALID || state == INPUT_STATE.EXITED_MANUAL) {
                         if (state == INPUT_STATE.VALID) {
-                            System.in.read();
+                            @SuppressWarnings("unused")
+                           int b = System.in.read();
                         }
                         Helper.OutputHelpers.printInputInstructions(false);
                     }
@@ -128,11 +124,7 @@ public class FlowControl implements PropertyChangeListener {
                             System.exit(0);
                             break;
                         case "manual":
-                            if (state == INPUT_STATE.ERROR_MANUAL) {
-                                Helper.OutputHelpers.printNewTargetInstructions(true, vehicleCount, gridSize);
-                            } else {
-                                Helper.OutputHelpers.printNewTargetInstructions(false, vehicleCount, gridSize);
-                            }
+                            Helper.OutputHelpers.printNewTargetInstructions(state == INPUT_STATE.ERROR_MANUAL, vehicleCount, gridSize);
                             input = scanner.nextLine();
                             if (input.equals("exit")) {
                                 state = INPUT_STATE.EXITED_MANUAL;
@@ -158,7 +150,7 @@ public class FlowControl implements PropertyChangeListener {
                 throw new RuntimeException(e);
             }
         });
-        // so we don't get hung up on the input thread
+        // daemon so we don't get hung up on the input thread
         exitWatcher.setDaemon(true);
         return exitWatcher;
     }

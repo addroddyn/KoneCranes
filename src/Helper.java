@@ -10,9 +10,6 @@ public class Helper {
     }
 
     public static final class InputHelpers {
-        public static int getIntegerInput(String message, int defaultValue) {
-            return getIntegerInput(message, defaultValue, Integer.MIN_VALUE + 1);
-        }
 
         public static int getIntegerInput(String message, int defaultValue, int lowerLimit) {
             return getIntegerInput(message, defaultValue, lowerLimit, Integer.MAX_VALUE - 1);
@@ -28,7 +25,7 @@ public class Helper {
                     if (response == null) {
                         throw new NumberFormatException();
                     }
-                    if (response.isBlank() && defaultValue != -1) returnValue = defaultValue;
+                    if (response.trim().isEmpty() && defaultValue != -1) returnValue = defaultValue;
                     else {
                         returnValue = Integer.parseInt(response);
                         if (returnValue < lowerLimit || returnValue > upperLimit) throw new NumberFormatException();

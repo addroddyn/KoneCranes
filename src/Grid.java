@@ -16,22 +16,6 @@ public class Grid {
     private final int columnLength;
     private final GridLocation[][] currentGrid;
 
-    public int GetRowStart() {
-        return 0;
-    }
-
-    public int GetColumnStart() {
-        return 0;
-    }
-
-    public int GetColumnEnd() {
-        return columnLength - 1;
-    }
-
-    public int GetRowEnd() {
-        return rowLength - 1;
-    }
-
     private Grid(int gridSize) {
         rowLength = gridSize;
         columnLength = gridSize;
