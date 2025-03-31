@@ -1,11 +1,11 @@
 package trafficsim;
 
 public class GridLocationDTO {
-    private int row = 0;
-    private int column = 0;
-    private boolean isCenter = false;
-    private boolean isTarget = false;
-    private boolean hasVehicle = false;
+    private final int row;
+    private final int column;
+    private final boolean isCenter;
+    private final boolean isTarget;
+    private final boolean hasVehicle;
 
     public GridLocationDTO(int row, int column, boolean isCenter, boolean isTarget, boolean hasVehicle) {
         this.row = row;

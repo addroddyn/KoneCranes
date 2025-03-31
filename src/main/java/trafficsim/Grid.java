@@ -23,10 +23,6 @@ public class Grid {
         currentGrid[currentTarget.getRow()][currentTarget.getColumn()].setAsTarget(b);
     }
 
-    public int getGridSize() {
-        return rowCount;
-    }
-
     private Grid(int gridSize) {
         rowCount = gridSize;
         columnCount = gridSize;
