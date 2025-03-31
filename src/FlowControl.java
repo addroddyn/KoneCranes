@@ -1,6 +1,7 @@
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class FlowControl implements PropertyChangeListener {
@@ -14,14 +15,70 @@ public class FlowControl implements PropertyChangeListener {
 
     TrafficControl trafficControl;
     private Boolean isThereActiveVehicle = true;
-    int gridSize = 10;
-    int vehicleCount = 3;
+    int gridSize = 15;
+    int vehicleCount = 5;
 
 
     public void start() {
         trafficControl = TrafficControl.getInstance();
-        /*int gridSize = Helper.InputHelpers.getIntegerInput("Please enter grid size (empty for default:10, minimum: 5).", 10, 5);
-        int vehicleCount = Helper.InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 1, minimum: 1).", 1, 1);*/
+
+        Scanner scanner = new Scanner(System.in);
+        boolean inputChosen = false;
+        boolean inputError = false;
+        while (!inputChosen) {
+            if (!inputError) {
+                Helper.OutputHelpers.printStartup(false);
+            }
+            else {
+                Helper.OutputHelpers.printStartup(true);
+            }
+            String generationMethod = scanner.nextLine();
+            inputError = false;
+            switch (generationMethod) {
+                case "auto":
+                    trafficControl.generateGrid(gridSize);
+                    trafficControl.generateVehicles(vehicleCount);
+                    inputChosen = true;
+                    break;
+                case "basic":
+                    gridSize = Helper.InputHelpers.getIntegerInput("Please enter grid size (empty for default:15, minimum: 5).", 10, 5);
+                    vehicleCount = Helper.InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
+                    if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
+                        inputChosen = true;
+                    }
+                    else {
+                        inputError = true;
+                    }
+                    break;
+                case "manual":
+                    int gridSize = Helper.InputHelpers.getIntegerInput("Please enter grid size (empty for default:15, minimum: 5).", 10, 5);
+                    int vehicleCount = Helper.InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
+                    if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
+                        HashMap<Integer, GridLocation> vehicleTargets = new HashMap<Integer, GridLocation>();
+                        for (int i = 0; i < vehicleCount; i++) {
+                            int row = Helper.InputHelpers.getIntegerInput("Please enter the target row for vehicle " + i + " between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
+                            int column = Helper.InputHelpers.getIntegerInput("Please enter the target column for vehicle " + i + "  between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
+                            if (row != Integer.MIN_VALUE && column != Integer.MIN_VALUE) {
+                                vehicleTargets.put(i, new GridLocation(row, column));
+                            } else {
+                                inputError = true;
+                            }
+                        }
+                        if (!inputError) {
+                            trafficControl.generateGrid(gridSize);
+                            trafficControl.generateVehicles(vehicleCount, vehicleTargets);
+                            inputChosen = true;
+                        }
+
+                    }
+                    break;
+                default:
+                    inputError = true;
+                    break;
+            }
+
+        }
+        trafficControl.Go();
         trafficControl.addFullTickListener(this);
         trafficControl.addRetirementListener(this);
 

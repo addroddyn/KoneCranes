@@ -1,6 +1,7 @@
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class TrafficControl {
 
@@ -30,6 +31,21 @@ public class TrafficControl {
         vehicleTreads = new ArrayList<>(vehicleCount);
         for (int i = 0; i < vehicleCount; i++) {
             Vehicle v = new Vehicle(i, this, mainGrid.getOriginPoint(), mainGrid.getRandomLocation());
+            vehicleFleet.add(v);
+            Thread t = new Thread(v);
+            vehicleTreads.add(t);
+            t.start();
+            if (!addVehicleToOrigin(v)) {
+                throw new RuntimeException();
+            }
+        }
+    }
+
+    public void generateVehicles(int vehicleCount, HashMap<Integer,GridLocation> vehicleTargets) {
+        vehicleFleet = new ArrayList<>(vehicleCount);
+        vehicleTreads = new ArrayList<>(vehicleCount);
+        for (int i = 0; i < vehicleCount; i++) {
+            Vehicle v = new Vehicle(i, this, mainGrid.getOriginPoint(), new GridLocation(vehicleTargets.get(i).getRow(), vehicleTargets.get(i).getColumn()));
             vehicleFleet.add(v);
             Thread t = new Thread(v);
             vehicleTreads.add(t);
@@ -126,5 +142,7 @@ public class TrafficControl {
             }
         }
     }
+
+
 }
 

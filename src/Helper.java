@@ -28,7 +28,7 @@ public class Helper {
                     if (response == null) {
                         throw new NumberFormatException();
                     }
-                    if (response.isBlank()) returnValue = defaultValue;
+                    if (response.isBlank() && defaultValue != -1) returnValue = defaultValue;
                     else {
                         returnValue = Integer.parseInt(response);
                         if (returnValue < lowerLimit || returnValue > upperLimit) throw new NumberFormatException();
@@ -75,6 +75,19 @@ public class Helper {
 
         public static void newTargetForVehicle(Vehicle v, GridLocation currentTarget) {
             System.out.println(v.getId() + " is now moving towards " + currentTarget.toString() );
+        }
+
+        public static void printStartup(boolean isError) {
+            if (isError){
+                System.out.println("You have entered an invalid value. Please try again.");
+            }
+            else {
+                System.out.println("Welcome to Traffic sim.");
+            }
+                System.out.println("This software simulates a number of vehicles going to their target and back on a grid. Please select a generation method:");
+                System.out.println("auto -- generate 5 vehicles on a 15x15 grid with random targets (targets can be modified during vehicle transit).");
+                System.out.println("basic -- provide grid size and vehicle count. Vehicles will have random targets (targets can be modified during vehicle transit).");
+                System.out.println("manual -- provide grid size and vehicle count. Manually select target coordinate for each vehicle (targets can be modified during vehicle transit).");
         }
     }
 
