@@ -1,9 +1,12 @@
+package trafficsim;
+
 import java.util.ArrayList;
 
 public class GridLocation {
     private int row;
     private int column;
     private final ArrayList<Vehicle> currentVehicles;
+    private boolean isTarget = false;
 
     public GridLocation(int row, int column) {
         this.row = row;
@@ -41,5 +44,19 @@ public class GridLocation {
         synchronized (this) {
             return currentVehicles.remove(v);
         }
+    }
+
+    public boolean hasVehicles(){
+        synchronized (this){
+            return !currentVehicles.isEmpty();
+        }
+    }
+
+    public boolean isTarget() {
+        return isTarget;
+    }
+
+    public void setAsTarget(boolean target) {
+        isTarget = target;
     }
 }

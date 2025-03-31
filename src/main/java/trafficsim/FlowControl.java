@@ -1,10 +1,20 @@
+package trafficsim;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import static trafficsim.Helper.*;
+
+@Component
 public class FlowControl implements PropertyChangeListener {
+    @Autowired
+    private final GridStreamController gridStreamController = new GridStreamController();
 
     private enum INPUT_STATE {
         VALID,
@@ -16,7 +26,7 @@ public class FlowControl implements PropertyChangeListener {
     TrafficControl trafficControl;
     private Boolean isThereActiveVehicle = true;
     int gridSize = 15;
-    int vehicleCount = 5;
+    int vehicleCount = 3;
 
 
     public void start() {
@@ -26,7 +36,7 @@ public class FlowControl implements PropertyChangeListener {
         boolean inputChosen = false;
         boolean inputError = false;
         while (!inputChosen) {
-            Helper.OutputHelpers.printStartup(inputError);
+            OutputHelpers.printStartup(inputError);
             String generationMethod = scanner.nextLine();
             inputError = false;
             switch (generationMethod) {
@@ -36,23 +46,22 @@ public class FlowControl implements PropertyChangeListener {
                     inputChosen = true;
                     break;
                 case "basic":
-                    gridSize = Helper.InputHelpers.getIntegerInput("Please enter grid size (empty for default:15, minimum: 5).", 10, 5);
-                    vehicleCount = Helper.InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
+                    gridSize = InputHelpers.getIntegerInput("Please enter grid size (empty for default:15, minimum: 5).", 10, 5);
+                    vehicleCount = InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
                     if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
                         inputChosen = true;
-                    }
-                    else {
+                    } else {
                         inputError = true;
                     }
                     break;
                 case "manual":
-                    int gridSize = Helper.InputHelpers.getIntegerInput("Please enter grid size (empty for default:15, minimum: 5).", 10, 5);
-                    int vehicleCount = Helper.InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
+                    int gridSize = InputHelpers.getIntegerInput("Please enter grid size (empty for default:15, minimum: 5).", 10, 5);
+                    int vehicleCount = InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
                     if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
                         HashMap<Integer, GridLocation> vehicleTargets = new HashMap<>();
                         for (int i = 0; i < vehicleCount; i++) {
-                            int row = Helper.InputHelpers.getIntegerInput("Please enter the target row for vehicle " + i + " between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
-                            int column = Helper.InputHelpers.getIntegerInput("Please enter the target column for vehicle " + i + "  between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
+                            int row = InputHelpers.getIntegerInput("Please enter the target row for vehicle " + i + " between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
+                            int column = InputHelpers.getIntegerInput("Please enter the target column for vehicle " + i + "  between 0 and " + (gridSize - 1) + " (inclusive)", -1, 0, gridSize - 1);
                             if (row != Integer.MIN_VALUE && column != Integer.MIN_VALUE) {
                                 vehicleTargets.put(i, new GridLocation(row, column));
                             } else {
@@ -67,6 +76,9 @@ public class FlowControl implements PropertyChangeListener {
 
                     }
                     break;
+                case "exit":
+                    System.exit(0);
+                    break;
                 default:
                     inputError = true;
                     break;
@@ -80,13 +92,6 @@ public class FlowControl implements PropertyChangeListener {
         //get a separate thread to listen to user input
         Thread exitWatcher = getThread();
         exitWatcher.start();
-
-
-        if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
-            trafficControl.generateGrid(gridSize);
-            trafficControl.generateVehicles(vehicleCount);
-            trafficControl.Go();
-        }
     }
 
     private Thread getThread() {
@@ -97,13 +102,13 @@ public class FlowControl implements PropertyChangeListener {
                 INPUT_STATE state = INPUT_STATE.VALID;
                 while (isThereActiveVehicle) {
                     if (state == INPUT_STATE.ERROR_MAIN) {
-                        Helper.OutputHelpers.printInputInstructions(true);
+                        OutputHelpers.printInputInstructions(true);
                     } else if (state == INPUT_STATE.VALID || state == INPUT_STATE.EXITED_MANUAL) {
                         if (state == INPUT_STATE.VALID) {
                             @SuppressWarnings("unused")
-                           int b = System.in.read();
+                            int b = System.in.read();
                         }
-                        Helper.OutputHelpers.printInputInstructions(false);
+                        OutputHelpers.printInputInstructions(false);
                     }
                     trafficControl.Stop();
                     if (state == INPUT_STATE.ERROR_MANUAL) {
@@ -113,18 +118,18 @@ public class FlowControl implements PropertyChangeListener {
                     }
                     switch (input) {
                         case "resume":
-                            Helper.OutputHelpers.printResume();
+                            OutputHelpers.printResume();
                             state = INPUT_STATE.VALID;
                             trafficControl.Go();
                             break;
                         case "stop":
-                            Helper.OutputHelpers.printShutdown();
+                            OutputHelpers.printShutdown();
                             isThereActiveVehicle = false;
                             trafficControl.ShutDown();
                             System.exit(0);
                             break;
                         case "manual":
-                            Helper.OutputHelpers.printNewTargetInstructions(state == INPUT_STATE.ERROR_MANUAL, vehicleCount, gridSize);
+                            OutputHelpers.printNewTargetInstructions(state == INPUT_STATE.ERROR_MANUAL, vehicleCount, gridSize);
                             input = scanner.nextLine();
                             if (input.equals("exit")) {
                                 state = INPUT_STATE.EXITED_MANUAL;
@@ -159,11 +164,18 @@ public class FlowControl implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
-            case Helper.TCEvents.ALL_VEHICLES_MOVED:
+            case TCEvents.ALL_VEHICLES_MOVED:
                 trafficControl.Stop();
+                gridStreamController.pushGrid(trafficControl.getGridSnapshot());
+                try {
+                    // let the frontend do its thing
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 trafficControl.Go();
                 break;
-            case Helper.TCEvents.ALL_VEHICLES_RETIRED:
+            case TCEvents.ALL_VEHICLES_RETIRED:
                 isThereActiveVehicle = false;
                 try {
                     trafficControl.ShutDown();

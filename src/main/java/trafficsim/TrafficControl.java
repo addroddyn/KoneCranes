@@ -1,7 +1,11 @@
+package trafficsim;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static trafficsim.Helper.*;
 
 public class TrafficControl {
 
@@ -57,29 +61,29 @@ public class TrafficControl {
     }
 
     public void addTrafficLightListener(PropertyChangeListener l) {
-        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.TRAFFIC_GO_STOP, l);
+        propertyChangedBroadcaster.addPropertyChangeListener(TCEvents.TRAFFIC_GO_STOP, l);
     }
 
 
     public void addFullTickListener(PropertyChangeListener l) {
-        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.ALL_VEHICLES_MOVED, l);
+        propertyChangedBroadcaster.addPropertyChangeListener(TCEvents.ALL_VEHICLES_MOVED, l);
     }
 
     public void addRetirementListener(PropertyChangeListener l) {
-        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.ALL_VEHICLES_RETIRED, l);
+        propertyChangedBroadcaster.addPropertyChangeListener(TCEvents.ALL_VEHICLES_RETIRED, l);
     }
 
     public void addUnRetirementListener(PropertyChangeListener l) {
-        propertyChangedBroadcaster.addPropertyChangeListener(Helper.TCEvents.NO_REST_FOR_THE_WICKED, l);
+        propertyChangedBroadcaster.addPropertyChangeListener(TCEvents.NO_REST_FOR_THE_WICKED, l);
     }
 
     public void Go() {
-        propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.TRAFFIC_GO_STOP, false, true);
+        propertyChangedBroadcaster.firePropertyChange(TCEvents.TRAFFIC_GO_STOP, false, true);
     }
 
     public void Stop() {
         vehiclesMovedThisTick = 0;
-        propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.TRAFFIC_GO_STOP, true, false);
+        propertyChangedBroadcaster.firePropertyChange(TCEvents.TRAFFIC_GO_STOP, true, false);
     }
 
     public void ShutDown() throws InterruptedException {
@@ -87,14 +91,14 @@ public class TrafficControl {
             v.stop();
         }
         for (Thread t : vehicleTreads) {
-            t.join(100);
+            t.join(500);
         }
 
 
     }
 
     public int getVehicleMovement() {
-        return 1000;
+        return 1500;
     }
 
     private Boolean addVehicleToOrigin(Vehicle vehicle) {
@@ -104,13 +108,13 @@ public class TrafficControl {
     public void vehicleRetired() {
         retiredVehicles++;
         if (retiredVehicles == vehicleFleet.size()) {
-            propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.ALL_VEHICLES_RETIRED, false, true);
+            propertyChangedBroadcaster.firePropertyChange(TCEvents.ALL_VEHICLES_RETIRED, false, true);
         }
     }
 
     public void vehicleUnRetired(Vehicle vehicle) {
         retiredVehicles--;
-        propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.NO_REST_FOR_THE_WICKED, -1, vehicle.getId());
+        propertyChangedBroadcaster.firePropertyChange(TCEvents.NO_REST_FOR_THE_WICKED, -1, vehicle.getId());
     }
 
     public boolean requestMove(Vehicle vehicle, int currentRow, int currentColumn, int nextRow, int nextColumn) {
@@ -118,7 +122,7 @@ public class TrafficControl {
             vehiclesMovedThisTick++;
             if (vehiclesMovedThisTick == vehicleFleet.size()) {
                 vehiclesMovedThisTick = 0;
-                propertyChangedBroadcaster.firePropertyChange(Helper.TCEvents.ALL_VEHICLES_MOVED, false, true);
+                propertyChangedBroadcaster.firePropertyChange(TCEvents.ALL_VEHICLES_MOVED, false, true);
             }
 
             return true;
@@ -138,11 +142,22 @@ public class TrafficControl {
                 } else {
                     v.setCurrentTarget(new GridLocation(input.getRow(), input.getColumn()));
                 }
-                Helper.OutputHelpers.newTargetForVehicle(v, v.getCurrentTarget());
+                OutputHelpers.newTargetForVehicle(v, v.getCurrentTarget());
             }
         }
     }
 
 
+    public Grid getGridSnapshot() {
+        return mainGrid;
+    }
+
+    public void vehicleTargetSet(GridLocation newTarget) {
+        mainGrid.UpdateTargetOnLocation(newTarget, true);
+    }
+
+    public void vehicleTargetRemoved(GridLocation currentTarget) {
+        mainGrid.UpdateTargetOnLocation(currentTarget, false);
+    }
 }
 

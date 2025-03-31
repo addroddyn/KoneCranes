@@ -1,3 +1,5 @@
+package trafficsim;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -15,11 +17,13 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         return currentTarget;
     }
 
-    public void setCurrentTarget(GridLocation currentTarget) {
-        this.currentTarget = currentTarget;
+    public void setCurrentTarget(GridLocation newTarget) {
+        if (currentTarget != null) {trafficControl.vehicleTargetRemoved(currentTarget);}
+        this.currentTarget = newTarget;
         if (!shouldMove){
             trafficControl.vehicleUnRetired(this);
         }
+        trafficControl.vehicleTargetSet(newTarget);
     }
 
     public int getId(){
@@ -32,7 +36,7 @@ public class Vehicle implements PropertyChangeListener, Runnable {
         //this.home = home;
         this.home = new GridLocation(home.getRow(), home.getColumn());
         this.currentLocation = new GridLocation(home.getRow(), home.getColumn());
-        this.currentTarget = new GridLocation(target.getRow(), target.getColumn());
+        setCurrentTarget(target);
         trafficControl.addTrafficLightListener(this);
         trafficControl.addUnRetirementListener(this);
         tick = trafficControl.getVehicleMovement();

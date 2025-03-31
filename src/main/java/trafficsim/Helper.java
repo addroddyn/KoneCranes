@@ -1,3 +1,5 @@
+package trafficsim;
+
 import java.util.Scanner;
 
 public class Helper {
@@ -85,6 +87,8 @@ public class Helper {
                 System.out.println("auto -- generate 5 vehicles on a 15x15 grid with random targets (targets can be modified during vehicle transit).");
                 System.out.println("basic -- provide grid size and vehicle count. Vehicles will have random targets (targets can be modified during vehicle transit).");
                 System.out.println("manual -- provide grid size and vehicle count. Manually select target coordinate for each vehicle (targets can be modified during vehicle transit).");
+                System.out.println("exit -- Exit program.");
+
         }
     }
 

@@ -1,3 +1,5 @@
+package trafficsim;
+
 import java.util.Random;
 
 public class VehicleInput {
