@@ -85,17 +85,17 @@ public class FlowControl implements PropertyChangeListener {
             }
 
         }
-        trafficControl.Go();
         trafficControl.addFullTickListener(this);
         trafficControl.addRetirementListener(this);
+        trafficControl.Go();
 
         //get a separate thread to listen to user input
-        Thread exitWatcher = getThread();
-        exitWatcher.start();
+        Thread inputThread = getThread();
+        inputThread.start();
     }
 
     private Thread getThread() {
-        Thread exitWatcher = new Thread(() -> {
+        Thread inputThread = new Thread(() -> {
             try {
                 Scanner scanner = new Scanner(System.in);
                 String input;
@@ -156,8 +156,8 @@ public class FlowControl implements PropertyChangeListener {
             }
         });
         // daemon so we don't get hung up on the input thread
-        exitWatcher.setDaemon(true);
-        return exitWatcher;
+        inputThread.setDaemon(true);
+        return inputThread;
     }
 
 

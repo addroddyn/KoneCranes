@@ -1,5 +1,3 @@
-console.log("📦 app.js loaded!");
-
 const eventSource = new EventSource("/api/stream");
 
 let gridInitialized = false;
@@ -18,7 +16,7 @@ eventSource.addEventListener("grid", (event) => {
 });
 
 eventSource.onerror = function (e) {
-  console.error("❌ SSE error:", e);
+  console.error("SSE error:", e);
 };
 
 function initializeGrid(grid) {

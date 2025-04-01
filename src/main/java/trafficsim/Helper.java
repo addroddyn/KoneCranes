@@ -58,7 +58,9 @@ public class Helper {
             } else {
                 System.out.println("Manually give a target to a vehicle:");
             }
-            System.out.println("V:x,y -- set location x,y as the new target for vehicle V");
+            System.out.println("V:x,y -- set location x,y as the new target for vehicle V.");
+            System.out.println("V:<direction> -- set a directional target for vehicle V. Possible values are 'north', 'east', 'west','south'.");
+            System.out.println("V:new -- set a new random location for vehicle V.");
             System.out.println("You have vehicles between 0 and " + (vehicleCount - 1) + " (inclusive).");
             System.out.println("The grid coordinates go from 0 to " + (gridSize - 1) + " (inclusive).");
             System.out.println("Type 'exit' to return to previous menu.");
@@ -72,8 +74,8 @@ public class Helper {
             System.out.println("You've chosen to stop the program. Shutting down..");
         }
 
-        public static void newTargetForVehicle(Vehicle v, GridLocation currentTarget) {
-            System.out.println(v.getId() + " is now moving towards " + currentTarget.toString() );
+        public static void newTargetForVehicle(Vehicle vehicle, GridLocation currentTarget) {
+            System.out.println(vehicle.getId() + " is now moving towards " + currentTarget.toString() );
         }
 
         public static void printStartup(boolean isError) {

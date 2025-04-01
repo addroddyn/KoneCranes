@@ -34,12 +34,12 @@ public class TrafficControl {
         vehicleFleet = new ArrayList<>(vehicleCount);
         vehicleTreads = new ArrayList<>(vehicleCount);
         for (int i = 0; i < vehicleCount; i++) {
-            Vehicle v = new Vehicle(i, this, mainGrid.getOriginPoint(), mainGrid.getRandomLocation());
-            vehicleFleet.add(v);
-            Thread t = new Thread(v);
+            Vehicle vehicle = new Vehicle(i, this, mainGrid.getOriginPoint(), mainGrid.getRandomLocation());
+            vehicleFleet.add(vehicle);
+            Thread t = new Thread(vehicle);
             vehicleTreads.add(t);
             t.start();
-            if (!addVehicleToOrigin(v)) {
+            if (!addVehicleToOrigin(vehicle)) {
                 throw new RuntimeException();
             }
         }
@@ -49,12 +49,12 @@ public class TrafficControl {
         vehicleFleet = new ArrayList<>(vehicleCount);
         vehicleTreads = new ArrayList<>(vehicleCount);
         for (int i = 0; i < vehicleCount; i++) {
-            Vehicle v = new Vehicle(i, this, mainGrid.getOriginPoint(), new GridLocation(vehicleTargets.get(i).getRow(), vehicleTargets.get(i).getColumn()));
-            vehicleFleet.add(v);
-            Thread t = new Thread(v);
+            Vehicle vehicle = new Vehicle(i, this, mainGrid.getOriginPoint(), new GridLocation(vehicleTargets.get(i).getRow(), vehicleTargets.get(i).getColumn()));
+            vehicleFleet.add(vehicle);
+            Thread t = new Thread(vehicle);
             vehicleTreads.add(t);
             t.start();
-            if (!addVehicleToOrigin(v)) {
+            if (!addVehicleToOrigin(vehicle)) {
                 throw new RuntimeException();
             }
         }
@@ -87,11 +87,13 @@ public class TrafficControl {
     }
 
     public void ShutDown() throws InterruptedException {
-        for (Vehicle v : vehicleFleet) {
-            v.stop();
+        for (Vehicle vehicle : vehicleFleet) {
+            vehicle.stop();
+
+
         }
-        for (Thread t : vehicleTreads) {
-            t.join(500);
+        for (Thread thread : vehicleTreads) {
+            thread.join(500);
         }
 
 
@@ -131,18 +133,18 @@ public class TrafficControl {
     }
 
     public void newTargetForVehicle(VehicleInput input) {
-        for (Vehicle v : vehicleFleet) {
-            if (v.getId() == input.getVehicleId()) {
+        for (Vehicle vehicle : vehicleFleet) {
+            if (vehicle.getId() == input.getVehicleId()) {
                 if (input.isDirection()) {
                     if (input.getRow() != -1) {
-                        v.setCurrentTarget(new GridLocation(input.getRow(), v.getCurrentTarget().getColumn()));
+                        vehicle.setCurrentTarget(new GridLocation(input.getRow(), vehicle.getCurrentTarget().getColumn()));
                     } else if (input.getColumn() != -1) {
-                        v.setCurrentTarget(new GridLocation(v.getCurrentTarget().getRow(), input.getColumn()));
+                        vehicle.setCurrentTarget(new GridLocation(vehicle.getCurrentTarget().getRow(), input.getColumn()));
                     }
                 } else {
-                    v.setCurrentTarget(new GridLocation(input.getRow(), input.getColumn()));
+                    vehicle.setCurrentTarget(new GridLocation(input.getRow(), input.getColumn()));
                 }
-                OutputHelpers.newTargetForVehicle(v, v.getCurrentTarget());
+                OutputHelpers.newTargetForVehicle(vehicle, vehicle.getCurrentTarget());
             }
         }
     }
