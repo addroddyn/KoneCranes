@@ -122,7 +122,7 @@ public class FlowControl implements PropertyChangeListener {
                             state = INPUT_STATE.VALID;
                             trafficControl.Go();
                             break;
-                        case "stop":
+                        case "exit":
                             OutputHelpers.printShutdown();
                             isThereActiveVehicle = false;
                             trafficControl.ShutDown();

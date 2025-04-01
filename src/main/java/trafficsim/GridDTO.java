@@ -7,5 +7,6 @@ public class GridDTO {
     public int originRow = 0;
     public int originColumn = 0;
 
-    public ArrayList<ArrayList<GridLocationDTO>> locations = new ArrayList<>();
+    public ArrayList<ArrayList<GridLocationDTO>> newLocations = new ArrayList<>();
+    public ArrayList<ArrayList<GridLocationDTO>> oldLocations = new ArrayList<>();
 }

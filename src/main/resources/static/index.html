@@ -9,4 +9,40 @@
 </body>
 <script src="app.js">
 </script>
+<style>
+    body {
+  margin: 0;
+  padding: 0;
+  width: 100vw; /* 100% of viewport */
+}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    tr {
+    display:flex;
+    width:100%;
+    }
+
+    td {
+    width:auto;
+      background-color: #eee; /* Default gray */
+      border: 1px solid #ccc;
+      height: 50px;
+      text-align: center;
+      transition: background-color 0.15s ease;
+    }
+
+    .vehicle {
+      background-color: #4caf50 !important; /* Green */
+    }
+
+    .target {
+      background-color: #f32121 !important; /* Red */
+    }
+
+    .origin {
+      background-color: #2196f3 !important; /* Blue */
+    }
+</style>
 </html>

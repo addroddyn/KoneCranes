@@ -7,7 +7,7 @@ public class GridLocationDTO {
     private final boolean isTarget;
     private final boolean hasVehicle;
 
-    public GridLocationDTO(int row, int column, boolean isCenter, boolean isTarget, boolean hasVehicle) {
+    public GridLocationDTO(int row, int column, boolean isCenter, boolean isTarget, boolean hasVehicle, boolean toDelete) {
         this.row = row;
         this.column = column;
         this.isCenter = isCenter;
@@ -34,4 +34,5 @@ public class GridLocationDTO {
     public boolean isHasVehicle() {
         return hasVehicle;
     }
+
 }

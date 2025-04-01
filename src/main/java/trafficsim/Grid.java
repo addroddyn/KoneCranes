@@ -72,13 +72,17 @@ public class Grid {
             ArrayList<GridLocationDTO> locationRow = new ArrayList<>();
             for (int column = 0; column < columnCount; column++){
                 GridLocation actualLocation = currentGrid[row][column];
-                boolean isCenter = actualLocation.getRow() == getOriginPoint().getRow() && actualLocation.getColumn() == getOriginPoint().getColumn();
-                locationRow.add(new GridLocationDTO(row, column, isCenter, actualLocation.isTarget(), actualLocation.hasVehicles()));
+                if (actualLocation.isTarget() || actualLocation.hasVehicles()) {
+                    boolean isCenter = actualLocation.getRow() == getOriginPoint().getRow() && actualLocation.getColumn() == getOriginPoint().getColumn();
+                    if (!isCenter) {
+                        locationRow.add(new GridLocationDTO(row, column, isCenter, actualLocation.isTarget(), actualLocation.hasVehicles(), false));
+                    }
+                }
 
             }
             dtoLocations.add(locationRow);
         }
-        dto.locations = dtoLocations;
+        dto.newLocations = dtoLocations;
         return dto;
     }
 

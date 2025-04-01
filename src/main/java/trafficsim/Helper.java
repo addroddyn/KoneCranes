@@ -48,7 +48,7 @@ public class Helper {
                 System.out.println("Traffic stopped. Possible commands:");
             }
             System.out.println("resume -- continue traffic normally");
-            System.out.println("stop -- close the program");
+            System.out.println("exit -- close the program");
             System.out.println("manual -- manually give a new target to a vehicle. ");
         }
 

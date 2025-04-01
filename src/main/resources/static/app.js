@@ -3,7 +3,6 @@ console.log("📦 app.js loaded!");
 const eventSource = new EventSource("/api/stream");
 
 let gridInitialized = false;
-let cachedCells = [];
 let frameHandle = null;
 
 eventSource.addEventListener("grid", (event) => {
@@ -25,52 +24,56 @@ eventSource.onerror = function (e) {
 function initializeGrid(grid) {
   const table = document.getElementById("traffic-table");
   table.innerHTML = "";
-  cachedCells = [];
 
-  for (let row = 0; row < grid.locations.length; row++) {
+  for (let row = 0; row < grid.rowCount; row++) {
     const tr = document.createElement("tr");
-    const rowCache = [];
 
-    for (let col = 0; col < grid.locations[row].length; col++) {
+    for (let col = 0; col < grid.rowCount; col++) {
       const td = document.createElement("td");
-      td.style.width = (100 / grid.locations.length) + "%";
+      td.id = "td_" + row + "_" + col
+      td.style.width = (100 / grid.rowCount) + "%";
       td.style.height = "50px";
       td.style.textAlign = "center";
       td.style.border = "1px solid #ccc";
+      td.textContent = `${row},${col}`;
+
+      if (row === grid.originRow && col === grid.originColumn) {
+        td.classList.add("origin");
+      }
 
       tr.appendChild(td);
-      rowCache.push(td);
+
+
     }
 
     table.appendChild(tr);
-    cachedCells.push(rowCache);
   }
 }
 
 function renderGrid(grid) {
-  for (let row = 0; row < grid.locations.length; row++) {
-    for (let col = 0; col < grid.locations[row].length; col++) {
-      const cell = cachedCells[row][col];
-      const location = grid.locations[row][col];
+  for (let row = 0; row < grid.oldLocations.length; row++) {
+    for (let col = 0; col < grid.oldLocations[row].length; col++) {
+      const location = grid.oldLocations[row][col];
+      const cell = document.getElementById("td_" + location.row + "_" + location.column)
+     cell.className = "";
+}
+}
+  for (let row = 0; row < grid.newLocations.length; row++) {
+    for (let col = 0; col < grid.newLocations[row].length; col++) {
+      const location = grid.newLocations[row][col];
+      const cell = document.getElementById("td_" + location.row + "_" + location.column)
 
-      // Default appearance
-      cell.style.backgroundColor = "#eee";
-      cell.textContent = `${location.row},${location.column}`;
+     //cell.className = ""; // Reset all previous styles
 
-      // 🟩 Vehicle
-      if (location.hasVehicle === true) {
-        cell.style.backgroundColor = "#4caf50";
-      }
-
-      // 🟦 Origin
-      if (row === grid.originRow && col === grid.originColumn) {
-        cell.style.backgroundColor = "#2196f3";
-      }
-
-      // 🎯 Target (overrides vehicle)
-      if (location.target === true) {
-        cell.style.backgroundColor = "#f32121";
-      }
+     if (location.hasVehicle) {
+       cell.classList.add("vehicle");
+     } else if (location.target) {
+       cell.classList.add("target");
+     } else if (row === grid.originRow && col === grid.originColumn) {
+       cell.classList.add("origin");
+     }
     }
   }
+  document.getElementById('traffic-table').style.display = 'none';
+  document.getElementById('traffic-table').style.display = 'block';
 }

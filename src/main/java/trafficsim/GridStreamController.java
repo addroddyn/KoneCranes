@@ -15,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class GridStreamController {
 
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+    public ArrayList<ArrayList<GridLocationDTO>> oldTDTOLocations = new ArrayList<>();
 
     @GetMapping(value = "/stream", produces = "text/event-stream")
     public SseEmitter stream() {
@@ -36,9 +37,11 @@ public class GridStreamController {
         for (SseEmitter emitter : emitters) {
             try {
                 GridDTO dto = grid.getGridDTO();
+                dto.oldLocations = oldTDTOLocations;
                 emitter.send(SseEmitter.event()
                         .name("grid")
                         .data(dto));
+                oldTDTOLocations = dto.newLocations;
             } catch (IOException e) {
                 System.out.println("Error when sending event: " + e.getMessage());
                 e.printStackTrace();
