@@ -90,6 +90,7 @@ public class Helper {
                 System.out.println("basic -- provide grid size and vehicle count. Vehicles will have random targets (targets can be modified during vehicle transit).");
                 System.out.println("manual -- provide grid size and vehicle count. Manually select target coordinate for each vehicle (targets can be modified during vehicle transit).");
                 System.out.println("exit -- Exit program.");
+                System.out.println("Please note that you can stop vehicles at any point by pressing any key.");
 
         }
     }
