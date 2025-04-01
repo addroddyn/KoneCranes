@@ -16,6 +16,9 @@ public class Vehicle implements PropertyChangeListener, Runnable {
     public GridLocation getCurrentTarget() {
         return currentTarget;
     }
+    public GridLocation getCurrentLocation() {
+        return currentLocation;
+    }
 
     public void setCurrentTarget(GridLocation newTarget) {
         if (currentTarget != null) {trafficControl.vehicleTargetRemoved(currentTarget);}

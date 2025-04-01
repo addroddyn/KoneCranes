@@ -137,9 +137,9 @@ public class TrafficControl {
             if (vehicle.getId() == input.getVehicleId()) {
                 if (input.isDirection()) {
                     if (input.getRow() != -1) {
-                        vehicle.setCurrentTarget(new GridLocation(input.getRow(), vehicle.getCurrentTarget().getColumn()));
+                        vehicle.setCurrentTarget(new GridLocation(input.getRow(), vehicle.getCurrentLocation().getColumn()));
                     } else if (input.getColumn() != -1) {
-                        vehicle.setCurrentTarget(new GridLocation(vehicle.getCurrentTarget().getRow(), input.getColumn()));
+                        vehicle.setCurrentTarget(new GridLocation(vehicle.getCurrentLocation().getRow(), input.getColumn()));
                     }
                 } else {
                     vehicle.setCurrentTarget(new GridLocation(input.getRow(), input.getColumn()));
