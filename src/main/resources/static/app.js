@@ -61,8 +61,6 @@ function renderGrid(grid) {
       const location = grid.newLocations[row][col];
       const cell = document.getElementById("td_" + location.row + "_" + location.column)
 
-     //cell.className = ""; // Reset all previous styles
-
      if (location.hasVehicle) {
        cell.classList.add("vehicle");
      } else if (location.target) {
