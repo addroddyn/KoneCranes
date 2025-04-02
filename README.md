@@ -73,3 +73,7 @@ point, stop the simulation to a give a new target to a vehicle.
    1. in ad-hoc menu, FlowControl stops TrafficControl, and lets the user resume/exit/give a new target to a vehicle
    2. after new target or resume, FlowControl will let TrafficControl go, and software will continue as normal 
    from step 5
+
+## 5. Known issues
+- Front-end can lag behind simulation, especially when threads start shutting down
+- Probably related, front-end doesn't update with the last few ticks, so the last few vehicles are stuck on the grid 

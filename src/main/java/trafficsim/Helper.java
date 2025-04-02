@@ -85,8 +85,9 @@ public class Helper {
             else {
                 System.out.println("Welcome to Traffic sim.");
             }
-                System.out.println("This software simulates a number of vehicles going to their target and back on a grid. Please select a generation method:");
-                System.out.println("auto -- generate 5 vehicles on a 15x15 grid with random targets (targets can be modified during vehicle transit).");
+                System.out.println("This software simulates a number of vehicles going to their target and back on a grid. You can visit http://localhost:8080 for a visual representation.");
+                System.out.println("Please choose a generation method");
+                System.out.println("auto -- generate 3 vehicles on a 15x15 grid with random targets (targets can be modified during vehicle transit).");
                 System.out.println("basic -- provide grid size and vehicle count. Vehicles will have random targets (targets can be modified during vehicle transit).");
                 System.out.println("manual -- provide grid size and vehicle count. Manually select target coordinate for each vehicle (targets can be modified during vehicle transit).");
                 System.out.println("exit -- Exit program.");

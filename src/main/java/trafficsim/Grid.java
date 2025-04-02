@@ -75,7 +75,7 @@ public class Grid {
                 if (actualLocation.isTarget() || actualLocation.hasVehicles()) {
                     boolean isCenter = actualLocation.getRow() == getOriginPoint().getRow() && actualLocation.getColumn() == getOriginPoint().getColumn();
                     if (!isCenter) {
-                        locationRow.add(new GridLocationDTO(row, column, isCenter, actualLocation.isTarget(), actualLocation.hasVehicles(), false));
+                        locationRow.add(new GridLocationDTO(row, column, actualLocation.isTarget(), actualLocation.hasVehicles(), false));
                     }
                 }
 

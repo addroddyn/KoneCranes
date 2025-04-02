@@ -50,6 +50,9 @@ public class FlowControl implements PropertyChangeListener {
                     vehicleCount = InputHelpers.getIntegerInput("Please enter the number of vehicles (empty for default: 5, minimum: 1).", 1, 1);
                     if (gridSize != Integer.MIN_VALUE && vehicleCount != Integer.MIN_VALUE) {
                         inputChosen = true;
+
+                        trafficControl.generateGrid(gridSize);
+                        trafficControl.generateVehicles(vehicleCount);
                     } else {
                         inputError = true;
                     }
